@@ -6,54 +6,46 @@ const { Op, literal, fn, col } = require('sequelize');
 
 class EmployeeRepository {
   async findAll(cafeId = null) {
-    const includeOptions = [
-      {
-        model: Cafe,
-        through: {
-          attributes: ['start_date']
-        }
+    try {
+      // Get all employees first
+      const query = {
+        attributes: [
+          'id',
+          'name',
+          'email_address',
+          'phone_number',
+          'gender'
+        ],
+        include: []
+      };
+
+      // Apply cafe filter if provided
+      if (cafeId) {
+        query.include.push({
+          model: Cafe,
+          through: EmployeeCafe,
+          where: { id: cafeId }
+        });
       }
-    ];
 
-    let whereCondition = {};
-    if (cafeId) {
-      includeOptions[0].where = { id: cafeId };
-    }
+      const employees = await Employee.findAll(query);
 
-    const employees = await Employee.findAll({
-      attributes: [
-        'id',
-        'name',
-        'email_address',
-        'phone_number',
-        'gender'
-      ],
-      include: includeOptions
-    });
+      // For each employee, get cafe information using a separate query
+      const transformedEmployees = [];
 
-    // Transform the data to match the required response format
-    const transformedEmployees = employees.map(employee => {
-      // If the employee is assigned to a cafe
-      if (employee.Cafes && employee.Cafes.length > 0) {
-        const cafe = employee.Cafes[0];
-        const startDate = new Date(cafe.EmployeeCafe.start_date);
-        const currentDate = new Date();
+      for (const employee of employees) {
+        // Using raw query to get cafe info due to potential issues with associations
+        const [cafes] = await sequelize.query(`
+          SELECT c.id, c.name, ec.start_date 
+          FROM cafes c
+          JOIN employee_cafe ec ON c.id = ec.cafe_id
+          WHERE ec.employee_id = :employeeId
+        `, {
+          replacements: { employeeId: employee.id },
+          type: sequelize.QueryTypes.SELECT
+        });
 
-        // Calculate days worked (days between start date and current date)
-        const daysWorked = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
-
-        return {
-          id: employee.id,
-          name: employee.name,
-          email_address: employee.email_address,
-          phone_number: employee.phone_number,
-          gender: employee.gender,
-          days_worked: daysWorked,
-          cafe: cafe.name
-        };
-      } else {
-        // If the employee is not assigned to any cafe
-        return {
+        let employeeData = {
           id: employee.id,
           name: employee.name,
           email_address: employee.email_address,
@@ -62,22 +54,73 @@ class EmployeeRepository {
           days_worked: 0,
           cafe: ''
         };
-      }
-    });
 
-    // Sort by days worked (descending)
-    return transformedEmployees.sort((a, b) => b.days_worked - a.days_worked);
+        // If cafe info found, add it to employee data
+        if (cafes) {
+          const startDate = new Date(cafes.start_date);
+          const currentDate = new Date();
+          const daysWorked = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+
+          employeeData.days_worked = daysWorked + 1;
+          employeeData.cafe = cafes.name;
+        }
+
+        transformedEmployees.push(employeeData);
+      }
+
+      // Sort by days worked (descending)
+      return transformedEmployees.sort((a, b) => b.days_worked - a.days_worked);
+    } catch (error) {
+      console.error("Error in findAll:", error);
+      throw error;
+    }
   }
 
   async findById(id) {
-    return await Employee.findByPk(id, {
-      include: [
-        {
-          model: Cafe,
-          through: { attributes: ['start_date'] }
-        }
-      ]
-    });
+    try {
+      const employee = await Employee.findByPk(id);
+
+      if (!employee) return null;
+
+      // Get cafe info using direct SQL query
+      const [cafe] = await sequelize.query(`
+        SELECT c.id, c.name, ec.start_date 
+        FROM cafes c
+        JOIN employee_cafe ec ON c.id = ec.cafe_id
+        WHERE ec.employee_id = :employeeId
+      `, {
+        replacements: { employeeId: id },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      // Format the response
+      let response = {
+        id: employee.id,
+        name: employee.name,
+        email_address: employee.email_address,
+        phone_number: employee.phone_number,
+        gender: employee.gender,
+        days_worked: 0,
+        cafe: ''
+      };
+
+      // Add cafe information if found
+      if (cafe) {
+        const startDate = new Date(cafe.start_date);
+        const currentDate = new Date();
+
+        // Calculate days worked
+        const daysWorked = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+
+        response.days_worked = daysWorked;
+        response.cafe = cafe.name;
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Error in findById:", error);
+      throw error;
+    }
   }
 
   async create(employeeData, cafeId = null) {
@@ -97,7 +140,9 @@ class EmployeeRepository {
       }
 
       await transaction.commit();
-      return employee;
+
+      // Get the complete employee data with cafe
+      return await this.findById(employee.id);
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -143,7 +188,9 @@ class EmployeeRepository {
       }
 
       await transaction.commit();
-      return employee;
+
+      // Get the complete employee data with cafe
+      return await this.findById(id);
     } catch (error) {
       await transaction.rollback();
       throw error;
