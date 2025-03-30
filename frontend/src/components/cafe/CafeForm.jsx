@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Form, Button, Upload, Card, message, Tooltip, Input } from 'antd';
-import { UploadOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Form, Button, Upload, Card, message, Input } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
 
 /**
@@ -37,11 +37,14 @@ const CafeForm = ({
                 setFileList([
                     {
                         uid: '-1',
-                        name: 'logo.png',
+                        name: 'current-logo.png',
                         status: 'done',
                         url: initialValues.logo,
                     },
                 ]);
+            } else {
+                // Clear fileList if no logo
+                setFileList([]);
             }
         }
     }, [initialValues, form]);
@@ -53,15 +56,17 @@ const CafeForm = ({
 
     // Handle form submission
     const handleSubmit = (values) => {
-        // Get the file if exists
+        // Get the file if exists (either a new file or null if removed)
         const logoFile = fileList.length > 0 && fileList[0].originFileObj
-            ? fileList[0].originFileObj
-            : null;
+            ? fileList[0].originFileObj  // New file uploaded
+            : fileList.length > 0
+                ? fileList[0].url          // Existing file kept
+                : null;                    // No file (removed or never existed)
 
         // Prepare data to submit
         const cafeData = {
             ...values,
-            logo: logoFile || initialValues.logo || null,
+            logo: logoFile,
         };
 
         onSubmit(cafeData);
@@ -70,8 +75,12 @@ const CafeForm = ({
 
     // Handle logo file upload
     const handleLogoChange = ({ fileList: newFileList }) => {
-        // Check file size (2MB limit)
-        if (newFileList.length > 0 && newFileList[0].size > 2 * 1024 * 1024) {
+        // Check file size (2MB limit) for new uploads
+        if (
+            newFileList.length > 0 &&
+            newFileList[0].originFileObj &&
+            newFileList[0].originFileObj.size > 2 * 1024 * 1024
+        ) {
             message.error('Logo file must be smaller than 2MB!');
             return;
         }

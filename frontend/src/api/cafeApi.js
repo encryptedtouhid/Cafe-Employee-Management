@@ -18,7 +18,8 @@ const api = axios.create({
 
 /**
  * Cafe API service with methods for CRUD operations
- * Updated to correctly handle location filtering and image URLs
+ * Updated to correctly handle image uploads and processing
+ * Using POST instead of PUT for updates
  */
 const cafeApi = {
     /**
@@ -142,22 +143,25 @@ const cafeApi = {
     /**
      * Update an existing cafe
      * @param {string} id - Cafe ID
-     * @param {Object} cafeData - Updated cafe data
+     * @param {Object|FormData} cafeData - Updated cafe data or FormData object
+     * @param {boolean} isFormData - Flag indicating if cafeData is already FormData
      * @returns {Promise<Object>} - Updated cafe data
      */
-    updateCafe: async (id, cafeData) => {
+    updateCafe: async (id, cafeData, isFormData = false) => {
         try {
-            // Client-side validation for update
-            if (cafeData.name && (cafeData.name.length < 6 || cafeData.name.length > 10)) {
-                throw new Error('Name must be between 6-10 characters');
-            }
+            let response;
 
-            if (cafeData.description && cafeData.description.length > 256) {
-                throw new Error('Description cannot exceed 256 characters');
+            // Check if cafeData is already FormData
+            if (isFormData) {
+                // If cafeData is already FormData, use it directly
+                response = await api.post(`/cafe/update/${id}`, cafeData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
             }
-
-            // If cafeData contains a file, use FormData
-            if (cafeData.logo instanceof File) {
+            // Check if cafeData contains a file and needs to be converted to FormData
+            else if (cafeData.logo instanceof File) {
                 const formData = new FormData();
 
                 // Only append fields that are present
@@ -166,31 +170,24 @@ const cafeApi = {
                 if (cafeData.location) formData.append('location', cafeData.location);
                 formData.append('logo', cafeData.logo);
 
-                const response = await api.put(`/cafe/${id}`, formData, {
+                response = await api.post(`/cafe/update/${id}`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
-
-                // Format the response with full image URL
-                const updatedCafe = {
-                    ...response.data,
-                    logo: response.data.logo ? `${MEDIA_URL}/${response.data.logo.replace(/^\//, '')}` : null
-                };
-
-                return updatedCafe;
-            } else {
-                // Regular JSON request without file
-                const response = await api.put(`/cafe/${id}`, cafeData);
-
-                // Format the response with full image URL
-                const updatedCafe = {
-                    ...response.data,
-                    logo: response.data.logo ? `${MEDIA_URL}/${response.data.logo.replace(/^\//, '')}` : null
-                };
-
-                return updatedCafe;
             }
+            // Otherwise use regular JSON
+            else {
+                response = await api.post(`/cafe/update/${id}`, cafeData);
+            }
+
+            // Format the response with full image URL
+            const updatedCafe = {
+                ...response.data,
+                logo: response.data.logo ? `${MEDIA_URL}/${response.data.logo.replace(/^\//, '')}` : null
+            };
+
+            return updatedCafe;
         } catch (error) {
             console.error('Error updating cafe:', error);
             throw error.response?.data || error;
@@ -198,13 +195,13 @@ const cafeApi = {
     },
 
     /**
-     * Delete a cafe
+     * Delete a cafe using POST
      * @param {string} id - Cafe ID
      * @returns {Promise<Object>} - Response data
      */
     deleteCafe: async (id) => {
         try {
-            const response = await api.delete(`/cafe/${id}`);
+            const response = await api.post(`/cafe/delete/${id}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting cafe:', error);

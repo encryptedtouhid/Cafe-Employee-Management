@@ -65,27 +65,30 @@ export const createCafe = createAsyncThunk(
 
 /**
  * Update an existing cafe
- * Updated to align with Swagger schema requirements
+ * Updated to properly handle image uploads using FormData
  */
 export const updateCafe = createAsyncThunk(
     'cafes/updateCafe',
-    async ({ id, cafeData }, { rejectWithValue }) => {
+    async ({ id, cafeData, isFormData = false }, { rejectWithValue }) => {
         try {
-            // Client-side validation based on Swagger schema
-            if (cafeData.name && (cafeData.name.length < 6 || cafeData.name.length > 10)) {
-                return rejectWithValue('Name must be between 6-10 characters');
+            // Skip client-side validation if already using FormData
+            if (!isFormData) {
+                // Client-side validation based on Swagger schema
+                if (cafeData.name && (cafeData.name.length < 6 || cafeData.name.length > 10)) {
+                    return rejectWithValue('Name must be between 6-10 characters');
+                }
+
+                if (cafeData.description && cafeData.description.length > 256) {
+                    return rejectWithValue('Description cannot exceed 256 characters');
+                }
+
+                // Logo validation - if present, should be under 2MB
+                if (cafeData.logo instanceof File && cafeData.logo.size > 2 * 1024 * 1024) {
+                    return rejectWithValue('Logo file must be smaller than 2MB');
+                }
             }
 
-            if (cafeData.description && cafeData.description.length > 256) {
-                return rejectWithValue('Description cannot exceed 256 characters');
-            }
-
-            // Logo validation - if present, should be under 2MB
-            if (cafeData.logo instanceof File && cafeData.logo.size > 2 * 1024 * 1024) {
-                return rejectWithValue('Logo file must be smaller than 2MB');
-            }
-
-            return await cafeApi.updateCafe(id, cafeData);
+            return await cafeApi.updateCafe(id, cafeData, isFormData);
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));
         }

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Spin } from 'antd';
+import { Spin, message } from 'antd';
 import MainLayout from '../../layouts/MainLayout';
 import CafeForm from '../../components/cafe/CafeForm';
 import {
@@ -38,14 +38,37 @@ const EditCafePage = () => {
         };
     }, [dispatch, id]);
 
-    // Handle form submission
+    // Handle form submission with image upload
     const handleSubmit = (cafeData) => {
-        dispatch(updateCafe({ id, cafeData }))
+        // Create FormData object to handle file upload
+        const formData = new FormData();
+
+        // Add cafe data to FormData
+        if (cafeData.name) formData.append('name', cafeData.name);
+        if (cafeData.description) formData.append('description', cafeData.description);
+        if (cafeData.location) formData.append('location', cafeData.location);
+
+        // Check if a new logo file is provided
+        if (cafeData.logo instanceof File) {
+            formData.append('logo', cafeData.logo);
+        } else if (cafeData.logo === null) {
+            // Handle logo removal
+            formData.append('removeLogo', 'true');
+        }
+
+        // Dispatch the update action with FormData
+        dispatch(updateCafe({
+            id,
+            cafeData: formData,
+            isFormData: true // Flag to indicate this is FormData
+        }))
             .unwrap()
             .then(() => {
+                message.success('Cafe updated successfully');
                 navigate('/cafes');
             })
             .catch((error) => {
+                message.error(`Failed to update cafe: ${error}`);
                 console.error('Failed to update cafe:', error);
             });
     };
