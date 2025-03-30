@@ -1,6 +1,10 @@
 import axios from 'axios';
 
+// Define the base API URL
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+// Define the media/assets server URL (used for images)
+const MEDIA_URL = import.meta.env.VITE_MEDIA_URL || BASE_URL;
 
 /**
  * Create Axios instance with base configuration
@@ -14,20 +18,36 @@ const api = axios.create({
 
 /**
  * Cafe API service with methods for CRUD operations
- * Updated to match Swagger documentation
+ * Updated to correctly handle location filtering and image URLs
  */
 const cafeApi = {
     /**
      * Get all cafes with optional location filter
      * @param {string} location - Optional location filter
-     * @returns {Promise<Array>} - List of cafes
+     * @returns {Promise<Array>} - List of cafes with properly formatted image URLs
      */
-    getAllCafes: async (location = null) => {
+    getAllCafes: async (location = '') => {
         try {
-            const url = location ? `/cafes?location=${encodeURIComponent(location)}` : '/cafes';
+            // Build query parameters for filtering
+            const params = new URLSearchParams();
+            if (location && location.trim()) {
+                params.append('location', location.trim());
+            }
+
+            // Make API request with query parameters
+            const queryString = params.toString();
+            const url = queryString ? `/cafes?${queryString}` : '/cafes';
             const response = await api.get(url);
-            return response.data;
+
+            // Process response data to add full URLs to images
+            const cafes = response.data.map(cafe => ({
+                ...cafe,
+                logo: cafe.logo ? `${MEDIA_URL}/${cafe.logo.replace(/^\//, '')}` : null
+            }));
+
+            return cafes;
         } catch (error) {
+            console.error('Error fetching cafes:', error);
             throw error.response?.data || error;
         }
     },
@@ -35,13 +55,21 @@ const cafeApi = {
     /**
      * Get a specific cafe by ID
      * @param {string} id - Cafe ID
-     * @returns {Promise<Object>} - Cafe data
+     * @returns {Promise<Object>} - Cafe data with properly formatted image URL
      */
     getCafeById: async (id) => {
         try {
             const response = await api.get(`/cafes/${id}`);
-            return response.data;
+
+            // Process cafe data to add full URL to image
+            const cafe = {
+                ...response.data,
+                logo: response.data.logo ? `${MEDIA_URL}/${response.data.logo.replace(/^\//, '')}` : null
+            };
+
+            return cafe;
         } catch (error) {
+            console.error('Error fetching cafe by ID:', error);
             throw error.response?.data || error;
         }
     },
@@ -79,7 +107,14 @@ const cafeApi = {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
-                return response.data;
+
+                // Format the response with full image URL
+                const createdCafe = {
+                    ...response.data,
+                    logo: response.data.logo ? `${MEDIA_URL}/${response.data.logo.replace(/^\//, '')}` : null
+                };
+
+                return createdCafe;
             } else {
                 // Regular JSON request without file
                 const response = await api.post('/cafe', {
@@ -89,9 +124,17 @@ const cafeApi = {
                     // Don't include logo if it's null/undefined
                     ...(cafeData.logo && { logo: cafeData.logo })
                 });
-                return response.data;
+
+                // Format the response with full image URL
+                const createdCafe = {
+                    ...response.data,
+                    logo: response.data.logo ? `${MEDIA_URL}/${response.data.logo.replace(/^\//, '')}` : null
+                };
+
+                return createdCafe;
             }
         } catch (error) {
+            console.error('Error creating cafe:', error);
             throw error.response?.data || error;
         }
     },
@@ -128,13 +171,28 @@ const cafeApi = {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
-                return response.data;
+
+                // Format the response with full image URL
+                const updatedCafe = {
+                    ...response.data,
+                    logo: response.data.logo ? `${MEDIA_URL}/${response.data.logo.replace(/^\//, '')}` : null
+                };
+
+                return updatedCafe;
             } else {
                 // Regular JSON request without file
                 const response = await api.put(`/cafe/${id}`, cafeData);
-                return response.data;
+
+                // Format the response with full image URL
+                const updatedCafe = {
+                    ...response.data,
+                    logo: response.data.logo ? `${MEDIA_URL}/${response.data.logo.replace(/^\//, '')}` : null
+                };
+
+                return updatedCafe;
             }
         } catch (error) {
+            console.error('Error updating cafe:', error);
             throw error.response?.data || error;
         }
     },
@@ -149,9 +207,20 @@ const cafeApi = {
             const response = await api.delete(`/cafe/${id}`);
             return response.data;
         } catch (error) {
+            console.error('Error deleting cafe:', error);
             throw error.response?.data || error;
         }
     },
+
+    /**
+     * Helper method to get the full image URL
+     * @param {string} relativePath - Relative path of the image
+     * @returns {string} - Full URL of the image
+     */
+    getImageUrl: (relativePath) => {
+        if (!relativePath) return null;
+        return `${MEDIA_URL}/${relativePath.replace(/^\//, '')}`;
+    }
 };
 
 export default cafeApi;

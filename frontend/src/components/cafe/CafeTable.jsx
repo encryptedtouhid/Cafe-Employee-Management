@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
-import { Button, Space } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Space, Avatar } from 'antd';
+import { EditOutlined, DeleteOutlined, CoffeeOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import ConfirmationDialog from '../common/ConfirmationDialog';
 
@@ -12,6 +12,8 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 /**
  * Cafe Table Component using AG Grid
+ * Updated to correctly display logo images with proper URLs
+ *
  * @param {Object} props - Component props
  * @param {Array} props.cafes - Array of cafe objects
  * @param {Function} props.onDelete - Function to call on delete
@@ -23,6 +25,11 @@ const CafeTable = ({ cafes, onDelete, loading }) => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedCafe, setSelectedCafe] = useState(null);
 
+    // Function to handle image errors
+    const handleImageError = (event) => {
+        event.target.src = 'https://via.placeholder.com/40?text=No+Logo';
+    };
+
     // Define AG Grid column definitions
     const columnDefs = [
         {
@@ -30,16 +37,25 @@ const CafeTable = ({ cafes, onDelete, loading }) => {
             field: 'logo',
             width: 100,
             cellRenderer: (params) => {
-                if (params.value) {
-                    return (
-                        <img
-                            src={params.value}
-                            alt="Cafe Logo"
-                            style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%' }}
-                        />
-                    );
-                }
-                return null;
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                        {params.value ? (
+                            <Avatar
+                                src={params.value}
+                                size={40}
+                                shape="square"
+                                onError={handleImageError}
+                                style={{ objectFit: 'cover' }}
+                            />
+                        ) : (
+                            <Avatar
+                                icon={<CoffeeOutlined />}
+                                size={40}
+                                shape="square"
+                            />
+                        )}
+                    </div>
+                );
             }
         },
         {
@@ -56,7 +72,15 @@ const CafeTable = ({ cafes, onDelete, loading }) => {
             sortable: true,
             filter: true,
             flex: 2,
-            minWidth: 200
+            minWidth: 200,
+            cellRenderer: (params) => {
+                // Truncate long descriptions
+                const maxLength = 100;
+                const text = params.value || '';
+                return text.length > maxLength
+                    ? `${text.substring(0, maxLength)}...`
+                    : text;
+            }
         },
         {
             headerName: 'Employees',
@@ -135,7 +159,7 @@ const CafeTable = ({ cafes, onDelete, loading }) => {
 
     // Auto-size columns when data changes
     useEffect(() => {
-        if (gridRef.current && gridRef.current.api && cafes.length > 0) {
+        if (gridRef.current && gridRef.current.api && cafes?.length > 0) {
             gridRef.current.api.sizeColumnsToFit();
         }
     }, [cafes]);
@@ -164,7 +188,6 @@ const CafeTable = ({ cafes, onDelete, loading }) => {
                     overlayNoRowsTemplate={
                         '<span class="ag-overlay-no-rows-center">No cafes found</span>'
                     }
-                    loadingOverlayComponent
                 />
             </div>
 

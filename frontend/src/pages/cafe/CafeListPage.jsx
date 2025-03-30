@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Spin, Card, Space } from 'antd';
+import { Button, Spin, Card, Space, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import MainLayout from '../../layouts/MainLayout';
 import CafeTable from '../../components/cafe/CafeTable';
@@ -13,6 +13,7 @@ import {
 import {
     selectAllCafes,
     selectCafeLoading,
+    selectCafeError,
     selectLocationFilter,
     setLocationFilter,
     clearCafeError
@@ -20,19 +21,33 @@ import {
 
 /**
  * Page component for displaying the list of cafes
+ * Updated to properly handle location filtering
  */
 const CafeListPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    // Local state for debouncing filter changes
+    const [filterLoading, setFilterLoading] = useState(false);
+
     // Select data from Redux store
     const cafes = useSelector(selectAllCafes);
     const loading = useSelector(selectCafeLoading);
+    const error = useSelector(selectCafeError);
     const locationFilter = useSelector(selectLocationFilter);
 
     // Fetch cafes when component mounts or filter changes
     useEffect(() => {
-        dispatch(fetchCafes(locationFilter));
+        setFilterLoading(true);
+        dispatch(fetchCafes(locationFilter))
+            .unwrap()
+            .then(() => {
+                setFilterLoading(false);
+            })
+            .catch((err) => {
+                setFilterLoading(false);
+                message.error(`Failed to fetch cafes: ${err.message || 'Unknown error'}`);
+            });
 
         // Clear any errors when component unmounts
         return () => {
@@ -47,7 +62,14 @@ const CafeListPage = () => {
 
     // Handle cafe deletion
     const handleDelete = (cafeId) => {
-        dispatch(deleteCafe(cafeId));
+        dispatch(deleteCafe(cafeId))
+            .unwrap()
+            .then(() => {
+                message.success('Cafe deleted successfully');
+            })
+            .catch((err) => {
+                message.error(`Failed to delete cafe: ${err.message || 'Unknown error'}`);
+            });
     };
 
     // Handle add new cafe button click
@@ -58,7 +80,7 @@ const CafeListPage = () => {
     return (
         <MainLayout title="Cafes">
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <div className="page-actions">
+                <div className="page-actions" style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
@@ -66,17 +88,22 @@ const CafeListPage = () => {
                     >
                         Add New Cafe
                     </Button>
-                </div>
 
-                <CafeFilter
-                    initialLocation={locationFilter}
-                    onFilter={handleFilterChange}
-                />
+                    <CafeFilter
+                        initialLocation={locationFilter}
+                        onFilter={handleFilterChange}
+                        loading={filterLoading}
+                    />
+                </div>
 
                 <Card>
                     {loading ? (
-                        <div className="loading-container">
+                        <div className="loading-container" style={{ textAlign: 'center', padding: '40px' }}>
                             <Spin size="large" />
+                        </div>
+                    ) : error ? (
+                        <div className="error-container" style={{ color: 'red', padding: '20px', textAlign: 'center' }}>
+                            {typeof error === 'string' ? error : (error?.message || 'An error occurred while fetching cafes')}
                         </div>
                     ) : (
                         <CafeTable
