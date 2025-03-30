@@ -160,10 +160,10 @@ router.post('/', upload.single('logo'), cafeController.createCafe);
 
 /**
  * @swagger
- * /cafe/{id}:
- *   put:
+ * /cafe/update/{id}:
+ *   post:
  *     summary: Update an existing cafe
- *     description: Update an existing cafe with the provided information
+ *     description: Update an existing cafe with the provided information (uses POST instead of PUT)
  *     parameters:
  *       - in: path
  *         name: id
@@ -219,14 +219,14 @@ router.post('/', upload.single('logo'), cafeController.createCafe);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', upload.single('logo'), cafeController.updateCafe);
+router.post('/update/:id', upload.single('logo'), cafeController.updateCafe);
 
 /**
  * @swagger
- * /cafe/{id}:
- *   delete:
+ * /cafe/delete/{id}:
+ *   post:
  *     summary: Delete a cafe
- *     description: Delete a cafe and all its employees
+ *     description: Delete a cafe and all its employees (uses POST instead of DELETE)
  *     parameters:
  *       - in: path
  *         name: id
@@ -261,6 +261,6 @@ router.put('/:id', upload.single('logo'), cafeController.updateCafe);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', cafeController.deleteCafe);
+router.post('/delete/:id', cafeController.deleteCafe);
 
 module.exports = router;

@@ -137,10 +137,10 @@ router.post('/', employeeController.createEmployee);
 
 /**
  * @swagger
- * /employee/{id}:
- *   put:
+ * /employee/update/{id}:
+ *   post:
  *     summary: Update an existing employee
- *     description: Update an existing employee's information and optionally change their cafe assignment
+ *     description: Update an existing employee's information and optionally change their cafe assignment (uses POST instead of PUT)
  *     parameters:
  *       - in: path
  *         name: id
@@ -202,14 +202,14 @@ router.post('/', employeeController.createEmployee);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', employeeController.updateEmployee);
+router.post('/update/:id', employeeController.updateEmployee);
 
 /**
  * @swagger
- * /employee/{id}:
- *   delete:
+ * /employee/delete/{id}:
+ *   post:
  *     summary: Delete an employee
- *     description: Delete an employee from the system
+ *     description: Delete an employee from the system (uses POST instead of DELETE)
  *     parameters:
  *       - in: path
  *         name: id
@@ -244,6 +244,6 @@ router.put('/:id', employeeController.updateEmployee);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', employeeController.deleteEmployee);
+router.post('/delete/:id', employeeController.deleteEmployee);
 
 module.exports = router;

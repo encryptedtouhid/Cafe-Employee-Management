@@ -28,15 +28,7 @@ class EmployeeRepository {
         'phone_number',
         'gender'
       ],
-      include: includeOptions,
-      order: [
-        [literal(`
-          CASE 
-            WHEN "Cafes->EmployeeCafe"."start_date" IS NULL THEN 0 
-            ELSE EXTRACT(DAY FROM NOW() - "Cafes->EmployeeCafe"."start_date") 
-          END DESC
-        `)]
-      ]
+      include: includeOptions
     });
 
     // Transform the data to match the required response format
@@ -46,10 +38,10 @@ class EmployeeRepository {
         const cafe = employee.Cafes[0];
         const startDate = new Date(cafe.EmployeeCafe.start_date);
         const currentDate = new Date();
-        
+
         // Calculate days worked (days between start date and current date)
         const daysWorked = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
-        
+
         return {
           id: employee.id,
           name: employee.name,
@@ -73,7 +65,8 @@ class EmployeeRepository {
       }
     });
 
-    return transformedEmployees;
+    // Sort by days worked (descending)
+    return transformedEmployees.sort((a, b) => b.days_worked - a.days_worked);
   }
 
   async findById(id) {
