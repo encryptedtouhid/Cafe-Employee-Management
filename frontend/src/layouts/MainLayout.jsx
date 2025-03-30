@@ -1,4 +1,3 @@
-import React from 'react';
 import { Layout, Typography, Alert } from 'antd';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -28,7 +27,7 @@ const MainLayout = ({ children, title }) => {
             <Header className="header">
                 <div className="logo">
                     <Title level={4} style={{ color: 'white', margin: 0 }}>
-                        Café Employee Manager
+                        Café & Staff Manager
                     </Title>
                 </div>
                 <Navigation />

@@ -1,5 +1,8 @@
-import React from 'react';
+
 import { Navigate } from 'react-router-dom';
+
+// Welcome Page
+import WelcomePage from './pages/WelcomePage';
 
 // Cafe Pages
 import CafeListPage from './pages/cafe/CafeListPage';
@@ -15,10 +18,10 @@ import EditEmployeePage from './pages/employee/EditEmployeePage';
  * Application routes configuration
  */
 const routes = [
-    // Redirect root to cafes list
+    // Welcome page as default
     {
         path: '/',
-        element: <Navigate to="/cafes" replace />,
+        element: <WelcomePage />,
     },
 
     // Cafe routes
@@ -49,10 +52,10 @@ const routes = [
         element: <EditEmployeePage />,
     },
 
-    // Catch-all route - redirect to cafes list
+    // Catch-all route - redirect to welcome page
     {
         path: '*',
-        element: <Navigate to="/cafes" replace />,
+        element: <Navigate to="/" replace />,
     },
 ];
 

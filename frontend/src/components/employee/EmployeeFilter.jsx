@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Form, Select, Button, Card } from 'antd';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
