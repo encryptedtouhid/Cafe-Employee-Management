@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Form, Button, Upload, Card, message } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Form, Button, Upload, Card, message, Tooltip, Input } from 'antd';
+import { UploadOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
-import FormTextField from '../common/FormTextField';
-import UnsavedChangesAlert from '../common/UnsavedChangesAlert';
 
 /**
  * Form component for creating/editing cafes
@@ -90,14 +88,20 @@ const CafeForm = ({
         </div>
     );
 
-    // Form validation rules
+    // Form validation rules based on Swagger documentation
     const nameRules = [
+        { required: true, message: 'Name is required' },
         { min: 6, message: 'Name must be at least 6 characters' },
         { max: 10, message: 'Name cannot exceed 10 characters' },
     ];
 
     const descriptionRules = [
+        { required: true, message: 'Description is required' },
         { max: 256, message: 'Description cannot exceed 256 characters' },
+    ];
+
+    const locationRules = [
+        { required: true, message: 'Location is required' },
     ];
 
     return (
@@ -109,33 +113,37 @@ const CafeForm = ({
                 onValuesChange={handleFormChange}
                 className="cafe-form"
             >
-                <FormTextField
+                <Form.Item
                     name="name"
                     label="Name"
-                    placeholder="Enter cafe name"
-                    required={true}
+                    tooltip="Name must be between 6-10 characters"
                     rules={nameRules}
-                />
-
-                <FormTextField
-                    name="description"
-                    label="Description"
-                    placeholder="Enter cafe description"
-                    required={true}
-                    rules={descriptionRules}
-                />
-
-                <FormTextField
-                    name="location"
-                    label="Location"
-                    placeholder="Enter cafe location"
-                    required={true}
-                />
+                >
+                    <Input placeholder="Enter cafe name (6-10 characters)" />
+                </Form.Item>
 
                 <Form.Item
-                    name="logo"
+                    name="description"
+                    label="Description"
+                    tooltip="Maximum 256 characters"
+                    rules={descriptionRules}
+                >
+                    <Input.TextArea
+                        placeholder="Enter cafe description (max 256 characters)"
+                        rows={4}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="location"
+                    label="Location"
+                    rules={locationRules}
+                >
+                    <Input placeholder="Enter cafe location" />
+                </Form.Item>
+
+                <Form.Item
                     label="Logo"
-                    valuePropName="fileList"
                     extra="Logo file must be smaller than 2MB. Supported formats: JPG, PNG, GIF"
                 >
                     <Upload
@@ -168,7 +176,11 @@ const CafeForm = ({
                 </Form.Item>
             </Form>
 
-            <UnsavedChangesAlert hasUnsavedChanges={formChanged} />
+            {formChanged && (
+                <div className="unsaved-changes-alert" style={{ marginTop: '16px', color: 'orange' }}>
+                    You have unsaved changes. Please save or cancel your changes.
+                </div>
+            )}
         </Card>
     );
 };

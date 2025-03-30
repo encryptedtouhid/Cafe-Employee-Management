@@ -14,6 +14,7 @@ const api = axios.create({
 
 /**
  * Cafe API service with methods for CRUD operations
+ * Updated to match Swagger documentation
  */
 const cafeApi = {
     /**
@@ -23,7 +24,7 @@ const cafeApi = {
      */
     getAllCafes: async (location = null) => {
         try {
-            const url = location ? `/cafes?location=${location}` : '/cafes';
+            const url = location ? `/cafes?location=${encodeURIComponent(location)}` : '/cafes';
             const response = await api.get(url);
             return response.data;
         } catch (error) {
@@ -52,6 +53,19 @@ const cafeApi = {
      */
     createCafe: async (cafeData) => {
         try {
+            // Validate required fields according to Swagger definition
+            if (!cafeData.name || cafeData.name.length < 6 || cafeData.name.length > 10) {
+                throw new Error('Name must be between 6-10 characters');
+            }
+
+            if (!cafeData.description || cafeData.description.length > 256) {
+                throw new Error('Description is required and cannot exceed 256 characters');
+            }
+
+            if (!cafeData.location) {
+                throw new Error('Location is required');
+            }
+
             // If cafeData contains a file, use FormData
             if (cafeData.logo instanceof File) {
                 const formData = new FormData();
@@ -68,7 +82,13 @@ const cafeApi = {
                 return response.data;
             } else {
                 // Regular JSON request without file
-                const response = await api.post('/cafe', cafeData);
+                const response = await api.post('/cafe', {
+                    name: cafeData.name,
+                    description: cafeData.description,
+                    location: cafeData.location,
+                    // Don't include logo if it's null/undefined
+                    ...(cafeData.logo && { logo: cafeData.logo })
+                });
                 return response.data;
             }
         } catch (error) {
@@ -84,6 +104,15 @@ const cafeApi = {
      */
     updateCafe: async (id, cafeData) => {
         try {
+            // Client-side validation for update
+            if (cafeData.name && (cafeData.name.length < 6 || cafeData.name.length > 10)) {
+                throw new Error('Name must be between 6-10 characters');
+            }
+
+            if (cafeData.description && cafeData.description.length > 256) {
+                throw new Error('Description cannot exceed 256 characters');
+            }
+
             // If cafeData contains a file, use FormData
             if (cafeData.logo instanceof File) {
                 const formData = new FormData();
