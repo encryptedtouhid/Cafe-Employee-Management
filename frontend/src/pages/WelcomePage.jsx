@@ -42,11 +42,6 @@ const WelcomePage = () => {
                     </Card>
                 </Space>
 
-                <div style={{ textAlign: 'center', marginTop: '32px' }}>
-                    <Button type="link" icon={<ArrowRightOutlined />}>
-                        <Link to="/cafes">Continue to Cafés</Link>
-                    </Button>
-                </div>
             </div>
         </MainLayout>
     );
