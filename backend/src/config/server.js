@@ -15,14 +15,30 @@ const configureServer = (app) => {
   app.use(helmet());
 
   // CORS configuration
-  app.use(cors());
+  const corsOptions = {
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 204
+  };
+  app.use(cors(corsOptions));
 
   // Request body parsing
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Static file serving
-  app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+  // Static file serving with CORS headers
+  app.use('/uploads', (req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || 'http://localhost:5000');
+    res.setHeader('Access-Control-Allow-Methods', 'GET','POST','PUT','DELETE');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    );
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  }, express.static(path.join(__dirname, '../../uploads')));
 
   // HTTP request logging
   if (process.env.NODE_ENV !== 'test') {
