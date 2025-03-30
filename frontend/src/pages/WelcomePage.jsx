@@ -7,7 +7,7 @@ const { Title, Paragraph } = Typography;
 
 const WelcomePage = () => {
     return (
-        <MainLayout title="Welcome to GIC Café & Staff Manager">
+        <MainLayout title="Home">
             <div className="welcome-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
                 <Space direction="vertical" size="large" style={{ width: '100%', marginTop: '32px' }}>
                     <Card title="Get Started" style={{ textAlign: 'center' }}>
