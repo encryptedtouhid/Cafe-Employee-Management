@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const path = require('path');
 const { errorHandler, notFoundHandler } = require('../utils/errorHandler');
 const logger = require('../utils/logger');
+const { setupSwagger } = require('./swagger');
 
 /**
  * Configure Express application
@@ -37,6 +38,14 @@ const configureServer = (app) => {
  * Setup API routes
  */
 const setupRoutes = (app) => {
+  // Setup Swagger documentation
+  setupSwagger(app);
+
+  // Root route redirects to Swagger docs
+  app.get('/', (req, res) => {
+    res.redirect('/api-docs');
+  });
+
   // Import route files
   const cafeRoutes = require('../routes/cafeRoutes');
   const employeeRoutes = require('../routes/employeeRoutes');
