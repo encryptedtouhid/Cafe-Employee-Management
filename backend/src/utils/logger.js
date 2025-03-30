@@ -12,7 +12,7 @@ const logFormat = winston.format.combine(
 const logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'info',
     format: logFormat,
-    defaultMeta: { service: 'cafe-employee-api' },
+    defaultMeta: { service: 'cafe-and-staff-manager-api' },
     transports: [
         // Console transport for development
         new winston.transports.Console({
