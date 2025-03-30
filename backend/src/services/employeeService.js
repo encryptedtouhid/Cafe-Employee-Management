@@ -14,7 +14,7 @@ class EmployeeService {
           throw error;
         }
       }
-      
+
       return await employeeRepository.findAll(cafeId);
     } catch (error) {
       throw error;
@@ -24,37 +24,15 @@ class EmployeeService {
   async getEmployeeById(id) {
     try {
       const employee = await employeeRepository.findById(id);
+
       if (!employee) {
         const error = new Error('Employee not found');
         error.statusCode = 404;
         throw error;
       }
-      
-      // Format the response
-      let response = {
-        id: employee.id,
-        name: employee.name,
-        email_address: employee.email_address,
-        phone_number: employee.phone_number,
-        gender: employee.gender,
-        days_worked: 0,
-        cafe: ''
-      };
-      
-      // Add cafe information if employee is assigned to a cafe
-      if (employee.Cafes && employee.Cafes.length > 0) {
-        const cafe = employee.Cafes[0];
-        const startDate = new Date(cafe.EmployeeCafe.start_date);
-        const currentDate = new Date();
-        
-        // Calculate days worked
-        const daysWorked = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
-        
-        response.days_worked = daysWorked;
-        response.cafe = cafe.name;
-      }
-      
-      return response;
+
+      // The repository now correctly returns formatted data with cafe name
+      return employee;
     } catch (error) {
       throw error;
     }
@@ -71,7 +49,7 @@ class EmployeeService {
           throw error;
         }
       }
-      
+
       return await employeeRepository.create(employeeData, cafeId);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -94,18 +72,18 @@ class EmployeeService {
           throw error;
         }
       }
-      
+
       const updatedEmployee = await employeeRepository.update(id, employeeData, cafeId);
       if (!updatedEmployee) {
         const error = new Error('Employee not found');
         error.statusCode = 404;
         throw error;
       }
-      
+
       return updatedEmployee;
     } catch (error) {
       if (error instanceof ValidationError) {
-        const validationError = new Error(error.errors[0].message);  
+        const validationError = new Error(error.errors[0].message);
         validationError.statusCode = 400;
         throw validationError;
       }
