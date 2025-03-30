@@ -13,6 +13,7 @@ import {
 const initialState = {
     employees: [],
     selectedEmployee: null,
+    originalEmployeeData: null, // Added to store original data for comparison
     loading: false,
     error: null,
     filter: {
@@ -32,9 +33,16 @@ const employeeSlice = createSlice({
         },
         clearSelectedEmployee: (state) => {
             state.selectedEmployee = null;
+            state.originalEmployeeData = null;
         },
         clearEmployeeError: (state) => {
             state.error = null;
+        },
+        // Add this reducer to handle storing original employee data
+        setSelectedEmployeeWithOriginal: (state, action) => {
+            state.selectedEmployee = action.payload;
+            // Store a full copy to compare later when updating
+            state.originalEmployeeData = { ...action.payload };
         },
     },
     extraReducers: (builder) => {
@@ -61,6 +69,8 @@ const employeeSlice = createSlice({
             .addCase(fetchEmployeeById.fulfilled, (state, action) => {
                 state.loading = false;
                 state.selectedEmployee = action.payload;
+                // Store a full copy to compare later when updating
+                state.originalEmployeeData = { ...action.payload };
             })
             .addCase(fetchEmployeeById.rejected, (state, action) => {
                 state.loading = false;
@@ -94,6 +104,8 @@ const employeeSlice = createSlice({
                     state.employees[index] = action.payload;
                 }
                 state.selectedEmployee = action.payload;
+                // Clear the original data after successful update
+                state.originalEmployeeData = null;
             })
             .addCase(updateEmployee.rejected, (state, action) => {
                 state.loading = false;
@@ -118,13 +130,19 @@ const employeeSlice = createSlice({
 });
 
 // Export actions
-export const { setCafeFilter, clearSelectedEmployee, clearEmployeeError } = employeeSlice.actions;
+export const {
+    setCafeFilter,
+    clearSelectedEmployee,
+    clearEmployeeError,
+    setSelectedEmployeeWithOriginal
+} = employeeSlice.actions;
 
 // Export selectors
 export const selectAllEmployees = (state) => state.employees.employees;
 export const selectEmployeeById = (state, employeeId) =>
     state.employees.employees.find(employee => employee.id === employeeId);
 export const selectSelectedEmployee = (state) => state.employees.selectedEmployee;
+export const selectOriginalEmployeeData = (state) => state.employees.originalEmployeeData;
 export const selectEmployeeLoading = (state) => state.employees.loading;
 export const selectEmployeeError = (state) => state.employees.error;
 export const selectCafeFilter = (state) => state.employees.filter.cafeId;

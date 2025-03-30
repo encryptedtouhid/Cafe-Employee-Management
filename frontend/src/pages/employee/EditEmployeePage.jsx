@@ -40,6 +40,8 @@ const EditEmployeePage = () => {
 
     // Handle form submission
     const handleSubmit = (employeeData) => {
+        // We don't need to include the startdate field if it hasn't changed
+        // This is now handled in the thunk/api
         dispatch(updateEmployee({ id, employeeData }))
             .unwrap()
             .then(() => {

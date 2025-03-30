@@ -63,11 +63,24 @@ const employeeApi = {
      * Update an existing employee
      * @param {string} id - Employee ID
      * @param {Object} employeeData - Updated employee data
+     * @param {Object} originalData - Original employee data for comparison
      * @returns {Promise<Object>} - Updated employee data
      */
-    updateEmployee: async (id, employeeData) => {
+    updateEmployee: async (id, employeeData, originalData = null) => {
         try {
-            const response = await api.put(`/employee/${id}`, employeeData);
+            // Create a copy of the data to avoid modifying the original
+            const dataToSubmit = { ...employeeData };
+
+            // If we have the original data and the startdate hasn't changed, remove it from the update
+            if (originalData &&
+                originalData.startdate &&
+                dataToSubmit.startdate &&
+                originalData.startdate === dataToSubmit.startdate) {
+                delete dataToSubmit.startdate;
+            }
+
+            // Using POST instead of PUT as per the API spec
+            const response = await api.post(`/employee/update/${id}`, dataToSubmit);
             return response.data;
         } catch (error) {
             throw error.response?.data || error;
@@ -81,7 +94,8 @@ const employeeApi = {
      */
     deleteEmployee: async (id) => {
         try {
-            const response = await api.delete(`/employee/${id}`);
+            // Using POST instead of DELETE as per the API spec
+            const response = await api.post(`/employee/delete/${id}`);
             return response.data;
         } catch (error) {
             throw error.response?.data || error;

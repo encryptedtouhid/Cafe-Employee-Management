@@ -48,9 +48,14 @@ export const createEmployee = createAsyncThunk(
  */
 export const updateEmployee = createAsyncThunk(
     'employees/updateEmployee',
-    async ({ id, employeeData }, { rejectWithValue }) => {
+    async ({ id, employeeData }, { getState, rejectWithValue }) => {
         try {
-            return await employeeApi.updateEmployee(id, employeeData);
+            // Get the original employee data from state
+            const state = getState();
+            const originalEmployee = state.employees.originalEmployeeData || state.employees.selectedEmployee;
+
+            // Call API with both new data and original data for comparison
+            return await employeeApi.updateEmployee(id, employeeData, originalEmployee);
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to update employee');
         }
