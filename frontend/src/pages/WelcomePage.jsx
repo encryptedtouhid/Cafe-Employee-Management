@@ -7,12 +7,8 @@ const { Title, Paragraph } = Typography;
 
 const WelcomePage = () => {
     return (
-        <MainLayout title="Welcome to Café Employee Manager">
+        <MainLayout title="Welcome to GIC Café & Staff Manager">
             <div className="welcome-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                <Paragraph>
-                    Welcome to the Café & Staff Management System. This application helps you manage cafés and their employees.
-                </Paragraph>
-
                 <Space direction="vertical" size="large" style={{ width: '100%', marginTop: '32px' }}>
                     <Card title="Get Started" style={{ textAlign: 'center' }}>
                         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
