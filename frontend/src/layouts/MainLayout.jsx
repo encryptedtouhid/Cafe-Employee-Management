@@ -43,7 +43,7 @@ const MainLayout = ({ children, title }) => {
                 }}
             >
                 <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>
-                    Café Manager
+                    GIC Café & Staff Manager
                 </div>
                 <Menu
                     mode="inline"
