@@ -71,7 +71,7 @@ const MainLayout = ({ children, title }) => {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                     }}
                 >
-                    <Title level={4} style={{ margin: 0 }}>
+                    <Title level={4} style={{ margin: 0, marginTop:'13px' }}>
                         {title || 'Café & Staff Manager'}
                     </Title>
                 </Header>
