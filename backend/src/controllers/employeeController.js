@@ -6,6 +6,8 @@ class EmployeeController {
         try {
             const { cafe } = req.query;
             const employees = await employeeMediator.getAllEmployees(cafe);
+
+            // Handle response
             res.status(200).json(employees);
         } catch (error) {
             logger.error(`Error getting employees: ${error.message}`);
@@ -17,6 +19,8 @@ class EmployeeController {
         try {
             const { id } = req.params;
             const employee = await employeeMediator.getEmployeeById(id);
+
+            // Handle response
             res.status(200).json(employee);
         } catch (error) {
             logger.error(`Error getting employee by ID: ${error.message}`);
