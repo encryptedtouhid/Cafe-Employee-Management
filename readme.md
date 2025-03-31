@@ -3,6 +3,10 @@
 ## Overview
 This is a fullstack application for managing cafes and employees. The system consists of a PostgreSQL database, a Node.js/Express backend API, and a React frontend client application built with Vite.
 
+## Screenshot 
+
+![Demo](demo.gif)
+
 ## Project Structure
 ```
 project/
