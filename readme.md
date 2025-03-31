@@ -136,14 +136,14 @@ Example endpoints include:
 - `GET /api/cafes` - Retrieve all cafes
 - `GET /api/cafes/:id` - Retrieve a specific cafe
 - `POST /api/cafes` - Create a new cafe
-- `PUT /api/cafes/:id` - Update a cafe
-- `DELETE /api/cafes/:id` - Delete a cafe
+- `POST /api/cafes/:id` - Update a cafe
+- `POST /api/cafes/:id` - Delete a cafe
 
 - `GET /api/employees` - Retrieve all employees
 - `GET /api/employees/:id` - Retrieve a specific employee
 - `POST /api/employees` - Create a new employee
-- `PUT /api/employees/:id` - Update an employee
-- `DELETE /api/employees/:id` - Delete an employee
+- `POST /api/employees/:id` - Update an employee
+- `POST /api/employees/:id` - Delete an employee
 
 ## Environment Variables
 
