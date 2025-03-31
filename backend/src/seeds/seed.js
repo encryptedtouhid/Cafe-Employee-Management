@@ -12,35 +12,35 @@ const cafes = [
         id: uuidv4(),
         name: 'JavaBeans',
         description: 'A cozy cafe specializing in premium coffee and pastries.',
-        logo: 'uploads/logos/javabeans.jpg',
+        logo: '',
         location: 'Central'
     },
     {
         id: uuidv4(),
         name: 'CuppaJoy',
         description: 'Modern cafe with artisanal teas and organic snacks.',
-        logo: 'uploads/logos/cuppajoy.jpg',
+        logo: '',
         location: 'East'
     },
     {
         id: uuidv4(),
         name: 'BeanHere',
         description: 'Hip cafe with specialty coffee and all-day breakfast.',
-        logo: 'uploads/logos/beanhere.jpg',
+        logo: '',
         location: 'West'
     },
     {
         id: uuidv4(),
         name: 'TeaTime',
         description: 'Elegant tea house with a wide selection of teas.',
-        logo: 'uploads/logos/teatime.jpg',
+        logo: '',
         location: 'North'
     },
     {
         id: uuidv4(),
         name: 'BrewHub',
         description: 'Coffee shop with workspace and fast WiFi.',
-        logo: 'uploads/logos/brewhub.jpg',
+        logo: '',
         location: 'Central'
     }
 ];
